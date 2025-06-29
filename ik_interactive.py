@@ -62,7 +62,7 @@ ax.set_zlim(0, 550)
 ax.set_xlabel("X (mm)")
 ax.set_ylabel("Y (mm)")
 ax.set_zlabel("Z (mm)")
-ax.set_title("FANUC M-20iA Inverse Kinematics Visualization")
+ax.set_title("Inverse Kinematics Visualization")
 ax.legend()
 
 # === Sliders for X, Y, Z ===

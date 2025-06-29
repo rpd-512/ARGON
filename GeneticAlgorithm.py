@@ -1,4 +1,4 @@
-from ik_trainer import Robot, NeuralTrainer
+from IKTrainer import Robot, NeuralTrainer
 import pandas as pd
 import numpy as np
 import matplotlib as plt

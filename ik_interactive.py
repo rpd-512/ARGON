@@ -70,7 +70,7 @@ sliders = {}
 slider_axes = {}
 init_pos = [0, 0, 700]
 labels = ['X (mm)', 'Y (mm)', 'Z (mm)']
-ranges = [(-800, 800), (-800, 800), (300, 1400)]
+ranges = [(-300, 300), (-300, 300), (0, 700)]
 
 for i, (label, (vmin, vmax)) in enumerate(zip(labels, ranges)):
     ax_slider = plt.axes([0.25, 0.2 - i * 0.05, 0.6, 0.03])

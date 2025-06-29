@@ -5,7 +5,8 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import layers, models # type: ignore
 from tensorflow.keras.optimizers import Adam # type: ignore
-
+import random
+import copy
 
 class Robot:
     def __init__(self, name, dh_param, csv_set):
@@ -112,6 +113,27 @@ class NeuralTrainer:
     def save_model(self, filename = "ik_model.keras"):
         self.model.save(filename)
 
+    def __matmul__(self, other):
+        if not isinstance(other, NeuralTrainer):
+            raise TypeError("Can only crossover with another NeuralTrainer")
+    
+        new_layer_config = []
+        for layer1, layer2 in zip(self.layer_config, other.layer_config):
+            chosen_layer = random.choice([layer1, layer2])
+            new_layer_config.append(copy.deepcopy(chosen_layer))
+
+        new_gamma = random.choice([self.gamma, other.gamma])
+        new_alpha = random.choice([self.alpha, other.alpha])
+        new_batch_size = random.choice([self.batch_size, other.batch_size])
+
+        return NeuralTrainer(
+            robot=self.robot,
+            epoch=self.epoch,
+            batch_size=new_batch_size,
+            gamma=new_gamma,
+            alpha=new_alpha,
+            layer_config=new_layer_config
+        )
 
 
 if(__name__ == "__main__"):

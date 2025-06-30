@@ -68,8 +68,16 @@ class GeneticAlgorithm:
             fit = GeneticAlgorithm.fitness(neur_trainer)
             self.population_array.append([fit[0],fit[1:],neur_trainer])
 
+    def print_through_generation(self, filename="generation_log.txt"):
+        with open(filename, "w") as f:
+            for i, nn in enumerate(self.plot_array[6]):
+                f.write(f"=== Generation {i} ===\n")
+                f.write(str(nn))  # __str__ prints the NeuralTrainer summary
+                f.write("\n\n")
+
+
     def evolve(self):
-        self.plot_array = [[], [], [], [], [], []]
+        self.plot_array = [[], [], [], [], [], [], []]
         elite_val = self.population_size // 2
         cross_value = 0.75
 
@@ -84,7 +92,9 @@ class GeneticAlgorithm:
             self.plot_array[3].append(self.population_array[0][1][1])
             self.plot_array[4].append(self.population_array[0][1][2])
             self.plot_array[5].append(self.population_array[0][1][3])
+            self.plot_array[6].append(self.population_array[0][2])
 
+            self.population_array[0][2].save_model("gen_"+generation+"_best.keras")
             # === Select elites (clone to avoid mutation)
             elite_count = random.randint(1, elite_val)
             elite_parents = [
@@ -126,7 +136,7 @@ class GeneticAlgorithm:
         plt.ylabel("Fitness value")
         plt.title("Fitness Value")
         plt.legend()
-        plt.show()
+        plt.save("Fitness.png")
 
         plt.figure(figsize=(15,8))
         plt.plot(self.plot_array[0],self.plot_array[2],color='r',label='Genetic Algorithm')
@@ -134,7 +144,7 @@ class GeneticAlgorithm:
         plt.ylabel("Fitness value")
         plt.title("Angular MSE")
         plt.legend()
-        plt.show()
+        plt.save("Angular.png")
 
         plt.figure(figsize=(15,8))
         plt.plot(self.plot_array[0],self.plot_array[3],color='r',label='Genetic Algorithm')
@@ -142,7 +152,7 @@ class GeneticAlgorithm:
         plt.ylabel("Fitness value")
         plt.title("Positional Error")
         plt.legend()
-        plt.show()
+        plt.save("Positional.png")
 
         plt.figure(figsize=(15,8))
         plt.plot(self.plot_array[0],self.plot_array[4],color='r',label='Genetic Algorithm')
@@ -150,7 +160,7 @@ class GeneticAlgorithm:
         plt.ylabel("Fitness value")
         plt.title("Prediction Time")
         plt.legend()
-        plt.show()
+        plt.save("Time.png")
 
         plt.figure(figsize=(15,8))
         plt.plot(self.plot_array[0],self.plot_array[5],color='r',label='Genetic Algorithm')
@@ -158,7 +168,7 @@ class GeneticAlgorithm:
         plt.ylabel("Fitness value")
         plt.title("Model Size")
         plt.legend()
-        plt.show()
+        plt.save("Size.png")
 
 
 if(__name__ == "__main__"):
@@ -176,6 +186,7 @@ if(__name__ == "__main__"):
     genetic_algo = GeneticAlgorithm(pop, itr, robot)
     genetic_algo.generate_population()
     genetic_algo.evolve()
+    genetic_algo.print_through_generation()
     genetic_algo.plot_line()
     genetic_algo.population_array.sort()
-    genetic_algo.population_array[0][2].save_model()
+    genetic_algo.population_array[0][2].save_model("overall_best.keras")

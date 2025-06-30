@@ -118,7 +118,9 @@ class NeuralTrainer:
             "layer_size": layer_count
         }
 
-    def save_model(self, filename = "ik_model.keras"):
+    def save_model(self, filename="ik_model.keras"):
+        if not hasattr(self, "model"):
+            self.train()
         self.model.save(filename)
     def clone(self):
         return NeuralTrainer(
@@ -192,7 +194,15 @@ class NeuralTrainer:
             alpha=new_alpha,
             layer_config=new_layer_config
         )
-
+    def hash_key(self):
+        key = (
+            self.epoch,
+            self.batch_size,
+            round(self.gamma, 5),
+            round(self.alpha, 5),
+            tuple((units, act) for units, act in self.layer_config)
+        )
+        return key
     def __repr__(self):
         return self.__str__()
 

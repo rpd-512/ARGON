@@ -19,7 +19,6 @@ class GeneticAlgorithm:
         key = neural_net.hash_key()
 
         if key in self.fitness_cache:
-            print("\n\n\nMEMO USED\n\n\n")
             return self.fitness_cache[key]
         neural_net.train()
         
@@ -61,7 +60,7 @@ class GeneticAlgorithm:
             num_layers = random.randint(2, 6)
             neur_trainer = NeuralTrainer(
                 robot=self.robot,
-                epoch=1,
+                epoch=20,
                 batch_size=random.choice([32, 64, 128, 256, 512]),
                 gamma=random.uniform(0, 1),
                 alpha=random.uniform(0, 0.01),

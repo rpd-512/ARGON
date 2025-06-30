@@ -89,7 +89,7 @@ class NeuralTrainer:
             validation_data=(self.robot.X_test, self.robot.y_test),
             epochs=self.epoch,
             batch_size=self.batch_size,
-            verbose=1
+            verbose=2
         )
         return self.model, history
 
@@ -120,7 +120,15 @@ class NeuralTrainer:
 
     def save_model(self, filename = "ik_model.keras"):
         self.model.save(filename)
-
+    def clone(self):
+        return NeuralTrainer(
+            robot=self.robot,
+            epoch=self.epoch,
+            batch_size=self.batch_size,
+            gamma=self.gamma,
+            alpha=self.alpha,
+            layer_config=[layer[:] for layer in self.layer_config]  # deep copy of layer config
+        )
     def __matmul__(self, other):
         if not isinstance(other, NeuralTrainer):
             raise TypeError("Can only crossover with another NeuralTrainer")
@@ -155,7 +163,19 @@ class NeuralTrainer:
                     if isinstance(mutated[0], int):
                         mutated[0] = max(1, int(mutated[0] * random.uniform(0.8, 1.2)))
                     if isinstance(mutated[1], str) and random.random() < 0.3:
-                        mutated[1] = random.choice(['relu', 'tanh', 'sigmoid'])
+                        mutated[1] = random.choice(
+                            [
+                                'relu',       # 0
+                                'sigmoid',    # 1
+                                'tanh',       # 2
+                                'softmax',    # 3
+                                'elu',        # 4
+                                'selu',       # 5
+                                'softplus',   # 6
+                                'softsign',   # 7
+                                'swish'       # 8
+                            ]
+                        )
                     new_layer_config.append(mutated)
 
         # --- Mutation (optional step) ---

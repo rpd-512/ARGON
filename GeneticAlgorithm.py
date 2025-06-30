@@ -1,8 +1,10 @@
 from IKTrainer import Robot, NeuralTrainer
 import pandas as pd
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import random
+from tqdm import tqdm
+from copy import deepcopy
 
 class GeneticAlgorithm:
     def __init__(self, pop, itr, robot):
@@ -10,6 +12,33 @@ class GeneticAlgorithm:
         self.iteration_count = itr
         self.robot = robot
         self.population_array = []
+        self.plot_array = [[],[]]
+
+    @staticmethod
+    def fitness(neural_net):
+        neural_net.train()
+        
+        evaluation = neural_net.evaluate()
+
+        e_alpha = evaluation['angular_mse']
+        e_pi = evaluation['positional_mean']
+        e_tau = evaluation['prediction_time']
+        e_lambda = evaluation['layer_size']
+        
+        print(evaluation)
+
+        w_alpha = 1.0     # angular MSE weight
+        w_pi = 0.25        # positional error weight
+        w_tau = 0.1       # prediction time weight
+        w_lambda = 0.01    # network size weight
+
+        fit = (
+            w_alpha * e_alpha +
+            w_pi * e_pi +
+            w_tau * e_tau +
+            w_lambda * e_lambda
+        )
+        return [fit,e_alpha,e_pi,e_tau,e_lambda]  # lower is better
 
     def generate_population(self):
         act_func = [
@@ -25,35 +54,112 @@ class GeneticAlgorithm:
         ]
         for _ in range(self.population_size):
             num_layers = random.randint(2, 6)
-            self.population_array.append(
-                NeuralTrainer(
-                    robot=self.robot,
-                    epoch=20,
-                    batch_size=random.choice([32, 64, 128, 256, 512]),
-                    gamma=random.uniform(0, 1),
-                    alpha=random.uniform(0, 0.01),
-                    layer_config = [
-                        [random.choice([16, 32, 64, 128, 256, 512, 1024]), random.choice(act_func)]
-                        for _ in range(num_layers)
-                    ]
-                )
+            neur_trainer = NeuralTrainer(
+                robot=self.robot,
+                epoch=20,
+                batch_size=random.choice([32, 64, 128, 256, 512]),
+                gamma=random.uniform(0, 1),
+                alpha=random.uniform(0, 0.01),
+                layer_config = [
+                    [random.choice([16, 32, 64, 128, 256, 512, 1024]), random.choice(act_func)]
+                    for _ in range(num_layers)
+                ]
             )
-
-    def fitness(self, neural_net):
-        neural_net.train()
-        eval = neural_net.evaluate()
-        e_alph = eval['angular_mse']
-        e_pi = eval['positional_mean']
-        e_tau = eval['prediction_time']
-        e_lambda = eval['layer_size']
-        print(eval)
-        return (1)*e_alph + (1)*e_pi  - (1)*e_tau - (1)*e_lambda
+            fit = GeneticAlgorithm.fitness(neur_trainer)
+            self.population_array.append([fit[0],fit[1:],neur_trainer])
 
     def evolve(self):
-        pass
-    
+        self.plot_array = [[], [], [], [], [], []]
+        elite_val = self.population_size // 2
+        cross_value = 0.75
+
+        for generation in tqdm(range(self.iteration_count)):
+            # Sort by fitness (lower is better)
+            self.population_array.sort(key=lambda x: x[0])
+
+            # Log current best
+            self.plot_array[0].append(generation)
+            self.plot_array[1].append(self.population_array[0][0])
+            self.plot_array[2].append(self.population_array[0][1][0])
+            self.plot_array[3].append(self.population_array[0][1][1])
+            self.plot_array[4].append(self.population_array[0][1][2])
+            self.plot_array[5].append(self.population_array[0][1][3])
+
+            # === Select elites (clone to avoid mutation)
+            elite_count = random.randint(1, elite_val)
+            elite_parents = [
+                [entry[0], entry[1][:], entry[2].clone()]
+                for entry in self.population_array[:elite_count]
+            ]
+
+            # === Create new population (start with elites)
+            new_population = elite_parents[:]
+
+            # === Reproduce rest
+            while len(new_population) < self.population_size:
+                parent1 = random.choice(self.population_array)[2].clone()
+                parent2 = random.choice(self.population_array)[2].clone()
+
+                # crossover
+                if random.uniform(0, 1) < cross_value:
+                    try:
+                        child = parent1 @ parent2
+                    except:
+                        child = parent1  # fallback if crossover not defined
+
+                else:
+                    child = parent1
+
+                # fitness evaluation
+                fit = GeneticAlgorithm.fitness(child)
+                new_population.append([fit[0], fit[1:], child])
+
+            # Update population
+            self.population_array = new_population
+
+
+
     def plot_line(self):
-        pass
+        plt.figure(figsize=(15,8))
+        plt.plot(self.plot_array[0],self.plot_array[1],color='r',label='Genetic Algorithm')
+        plt.xlabel("Iternation Number")
+        plt.ylabel("Fitness value")
+        plt.title("Fitness Value")
+        plt.legend()
+        plt.show()
+
+        plt.figure(figsize=(15,8))
+        plt.plot(self.plot_array[0],self.plot_array[2],color='r',label='Genetic Algorithm')
+        plt.xlabel("Iternation Number")
+        plt.ylabel("Fitness value")
+        plt.title("Angular MSE")
+        plt.legend()
+        plt.show()
+
+        plt.figure(figsize=(15,8))
+        plt.plot(self.plot_array[0],self.plot_array[3],color='r',label='Genetic Algorithm')
+        plt.xlabel("Iternation Number")
+        plt.ylabel("Fitness value")
+        plt.title("Positional Error")
+        plt.legend()
+        plt.show()
+
+        plt.figure(figsize=(15,8))
+        plt.plot(self.plot_array[0],self.plot_array[4],color='r',label='Genetic Algorithm')
+        plt.xlabel("Iternation Number")
+        plt.ylabel("Fitness value")
+        plt.title("Prediction Time")
+        plt.legend()
+        plt.show()
+
+        plt.figure(figsize=(15,8))
+        plt.plot(self.plot_array[0],self.plot_array[5],color='r',label='Genetic Algorithm')
+        plt.xlabel("Iternation Number")
+        plt.ylabel("Fitness value")
+        plt.title("Model Size")
+        plt.legend()
+        plt.show()
+
 
 if(__name__ == "__main__"):
     yaml_path = "dh_parameters/kuka_youbot.yaml"
@@ -65,22 +171,11 @@ if(__name__ == "__main__"):
     robot = Robot("kuka_youbot", dh_p, csv_s)
 
     pop = 20
-    itr = 15
+    itr = 20
 
     genetic_algo = GeneticAlgorithm(pop, itr, robot)
     genetic_algo.generate_population()
-
-    arr = genetic_algo.population_array
-    print("\nParent 1")
-    print(arr[0])
-    print("\nParent 2")
-    print(arr[1])
-    print("\nCrossover")
-    print(arr[0]@arr[1])
-
-    print("\n\nEvaluating Parent 1")
-    genetic_algo.fitness(arr[0])
-    print("\n\nEvaluating Parent 2")
-    genetic_algo.fitness(arr[1])
-    print("\n\nEvaluating Child")
-    genetic_algo.fitness(arr[0]@arr[1])
+    genetic_algo.evolve()
+    genetic_algo.plot_line()
+    genetic_algo.population_array.sort()
+    genetic_algo.population_array[0][2].save_model()

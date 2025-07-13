@@ -32,7 +32,7 @@ class GeneticAlgorithm:
         print(evaluation)
 
         w_alpha = 1.0     # angular MSE weight
-        w_pi = 0.25        # positional error weight
+        w_pi = 0.5        # positional error weight
         w_tau = 0.1       # prediction time weight
         w_lambda = 0.01    # network size weight
 
@@ -72,7 +72,7 @@ class GeneticAlgorithm:
             fit = self.fitness(neur_trainer)
             self.population_array.append([fit[0],fit[1:],neur_trainer])
 
-    def print_through_generation(self, filename="output_file/generation_log.txt"):
+    def print_through_generation(self, filename="output_files/generation_log.txt"):
         with open(filename, "w") as f:
             for i, nn in enumerate(self.plot_array[6]):
                 f.write(f"=== Generation {i} ===\n")
@@ -98,7 +98,7 @@ class GeneticAlgorithm:
             self.plot_array[5].append(self.population_array[0][1][3])
             self.plot_array[6].append(self.population_array[0][2])
 
-            self.population_array[0][2].save_model("gen_"+str(generation)+"_best.keras")
+            self.population_array[0][2].save_model("output_files/gen_"+str(generation)+"_best.keras")
             # === Select elites (clone to avoid mutation)
             elite_count = random.randint(1, elite_val)
             elite_parents = [
@@ -147,7 +147,7 @@ class GeneticAlgorithm:
             plt.ylabel("Value")
             plt.title(title)
             plt.legend()
-            plt.savefig(f"output_file/graphs/{title.replace(' ', '_')}.png")
+            plt.savefig(f"output_files/graphs/{title.replace(' ', '_')}.png")
             plt.close()
 
 

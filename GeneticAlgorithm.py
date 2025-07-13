@@ -60,7 +60,7 @@ class GeneticAlgorithm:
             num_layers = random.randint(2, 6)
             neur_trainer = NeuralTrainer(
                 robot=self.robot,
-                epoch=20,
+                epoch=10,
                 batch_size=random.choice([32, 64, 128, 256, 512]),
                 gamma=random.uniform(0, 1),
                 alpha=random.uniform(0, 0.01),
@@ -161,7 +161,7 @@ if(__name__ == "__main__"):
 
     robot = Robot("kuka_youbot", dh_p, csv_s)
 
-    pop = 20
+    pop = 10
     itr = 20
 
     genetic_algo = GeneticAlgorithm(pop, itr, robot)
